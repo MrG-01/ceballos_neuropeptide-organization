@@ -8,8 +8,7 @@ import seaborn as sns
 from scipy.stats import zscore, spearmanr
 from pyls import behavioral_pls
 from scipy.spatial.distance import pdist, squareform
-from netneurotools.utils import get_centroids
-from utils import gene_null_set, index_structure, reorder_subcortex
+from utils import gene_null_set, index_structure, reorder_subcortex, get_centroids
 from plot_utils import divergent_green_orange, split_barplot
 from surfplot import Plot
 from neuromaps.datasets import fetch_fslr
@@ -202,6 +201,16 @@ receptors_df = receptors_df.sort_values('loading', ascending=False)
 fig, axes = split_barplot(receptors_df, x='loading', y='receptor', top=10,
                           figsize=(8, 5), dpi=200)
 
+# include bootstrapped loadings as dots
+top_idx = receptors_df.head(10).index
+top_dot_data = pls_result["bootres"]["y_loadings_boot"][top_idx, lv].T
+bottom_idx = receptors_df.tail(10).index[::-1]
+bottom_dot_data = pls_result["bootres"]["y_loadings_boot"][bottom_idx, lv].T
+
+# plot on top of split barplot
+sns.stripplot(ax=axes[1], data=top_dot_data, color='grey', size=0.6, jitter=True, alpha=0.5, orient='h')
+sns.stripplot(ax=axes[0], data=bottom_dot_data, color='grey', size=0.6, jitter=True, alpha=0.5, orient='h')
+
 if savefigs:
     plt.savefig('figs/receptor_loadings.pdf')
 
@@ -227,6 +236,20 @@ term_df = term_df.sort_values('loading', ascending=False)
 
 fig, axes = split_barplot(term_df, x='loading', y='term', top=10, 
                           figsize=(8, 5), dpi=200)
+
+# include bootstrapped loadings as dots
+top_idx = term_df.head(10).index
+top_dot_data = pls_result_X["bootres"]["y_loadings_boot"][top_idx, lv].T
+bottom_idx = term_df.tail(10).index[::-1]
+bottom_dot_data = pls_result_X["bootres"]["y_loadings_boot"][bottom_idx, lv].T
+
+# plot on top of split barplot
+sns.stripplot(ax=axes[1], data=top_dot_data, color='grey', size=0.6, jitter=True, alpha=0.5, orient='h')
+sns.stripplot(ax=axes[0], data=bottom_dot_data, color='grey', size=0.6, jitter=True, alpha=0.5, orient='h')
+
+# do not hide dots behind plots
+axes[0].set_zorder(1)
+axes[1].set_zorder(1)
 
 if savefigs:
     plt.savefig('figs/term_loadings.pdf')
