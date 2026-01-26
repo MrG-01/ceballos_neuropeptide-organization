@@ -28,11 +28,6 @@ __pycache__/
 
 # Other
 *.pdf
-*.eps
-*.jpeg
-*.jpg
-*.png
-*.svg
 *.csv
 *.gz
 *.tsv
@@ -40,6 +35,9 @@ __pycache__/
 *.json
 *.npz
 *.tex
+*.eps
+*.jpeg
+*.mat
 
 # Folders
 tmp/
