@@ -2,9 +2,8 @@ import itertools
 import numpy as np
 import pandas as pd
 from brainconn.distance import distance_wei_floyd, mean_first_passage_time, retrieve_shortest_path
-from sklearn.linear_model import LinearRegression
 from scipy.sparse.linalg import expm
-from scipy.stats import ks_2samp, zscore
+from scipy.stats import ks_2samp
 from joblib import Parallel, delayed
 
 def morans_i(dist, y, normalize=False, local=False, invert_dist=True):
@@ -156,10 +155,10 @@ def gene_null_set(gene_set, non_overlapping_set, distance, null_set_size=100, n_
                                                               null_set_size=null_set_size, seed=i)
                                       for i in range(n_permutations))
         
-    return null_set
+    return null_set 
 
 
-def navigation_wu(nav_dist_mat, sc_mat, show_progress=False):
+def navigation_wu(nav_dist_mat, sc_mat, show_progress=True):
     from tqdm import tqdm
     nav_paths = []  # (source, target, distance, hops, path)
     for src in tqdm(range(len(nav_dist_mat)), disable=not show_progress):
@@ -233,11 +232,7 @@ def search_information(W, L, has_memory=False):
     for i in range(N):
         for j in range(N):
             if (j > i and flag_triu) or (not flag_triu and i != j):
-                try:
-                    path = retrieve_shortest_path(i, j, hops, Pmat)
-                except ValueError as e:
-                    print(f"Error retrieving path from {i} to {j}: {e}")
-                    continue
+                path = retrieve_shortest_path(i, j, hops, Pmat)
                 lp = len(path) - 1
                 if flag_triu:
                     if np.any(path):
@@ -289,17 +284,17 @@ def non_diagonal_elements(matrix):
     return mat[rows, cols].flatten()
 
 
-def communication_measures(sc, sc_neglog, dist_mat, symmetric=True):
+def communication_measures(sc, sc_neglog, dist_mat):
     spl_mat, sph_mat, _ = distance_wei_floyd(sc_neglog)
     nsr, nsr_n, npl_mat_asym, nph_mat_asym, nav_paths = navigation_wu(dist_mat, sc)
-    npe_mat_asym = 1 / (npl_mat_asym + np.finfo(float).eps)
-    npe_mat = (npe_mat_asym + npe_mat_asym.T) / 2 if symmetric else npe_mat_asym
+    npe_mat_asym = 1 / npl_mat_asym
+    npe_mat = (npe_mat_asym + npe_mat_asym.T) / 2
     sri_mat_asym = search_information(sc, sc_neglog)
-    sri_mat = (sri_mat_asym + sri_mat_asym.T) / 2 if symmetric else sri_mat_asym
+    sri_mat = (sri_mat_asym + sri_mat_asym.T) / 2
     cmc_mat = communicability_wei(sc)
     mfpt_mat_asym = mean_first_passage_time(sc)
-    dfe_mat_asym = 1 / (mfpt_mat_asym + np.finfo(float).eps)
-    dfe_mat = (dfe_mat_asym + dfe_mat_asym.T) / 2 if symmetric else dfe_mat_asym
+    dfe_mat_asym = 1 / mfpt_mat_asym
+    dfe_mat = (dfe_mat_asym + dfe_mat_asym.T) / 2
 
 
     sc_comm_mats = [spl_mat, npe_mat, sri_mat, cmc_mat, dfe_mat]
@@ -525,13 +520,10 @@ def scaled_robust_sigmoid(x):
     Apply Scaled Robust Sigmoid normalization to a 1D numpy array.
     
     Parameters:
-    x : np.ndarray or list
-        Input array to be normalized.
+    x (np.ndarray): Input array of expression values.
 
     Returns:
-    ----
-    normalized: np.ndarray
-        Normalized array with values between 0 and 1.
+    np.ndarray: SRS-normalized array.
     """
     x = np.asarray(x, dtype=np.float64)
     median = np.median(x)
@@ -552,26 +544,37 @@ def scaled_robust_sigmoid(x):
     
     return normalized
 
-
-def compute_dfc_var(time_series, window_size=60, step_size=30):
+def get_centroids(img, labels=None, image_space=False):
     """
-    Compute variability of dynamic FC (sliding window FC) within a session.
+    Finds centroids of `labels` in `img`
 
-    Parameters:
-    - time_series: np.ndarray of shape (T, R), time series per region
-    - window_size: int, number of time points in the sliding window
-    - step_size: int, how much the window moves at each step
+    Parameters
+    ----------
+    img : niimg-like object
+        3D image containing integer label at each point
+    labels : array_like, optional
+        List of labels for which to find centroids. If not specified all
+        labels present in `img` will be used. Default: None
+    image_space : bool, optional
+        Whether to return xyz (image space) coordinates for centroids based
+        on transformation in `img.affine`. Default: False
 
-    Returns:
-    - dFC_var: np.ndarray of shape (R, R), variance of dynamic FC
+    Returns
+    -------
+    centroids : (N, 3) np.ndarray
+        Coordinates of centroids for ROIs in input data
     """
-    T, R = time_series.shape
-    all_dFC = []
-    for start in range(0, T - window_size + 1, step_size):
-        window = time_series[start:start + window_size]
-        window = zscore(window, axis=0)  # Normalize each region
-        dFC = np.corrcoef(window, rowvar=False)
-        all_dFC.append(dFC)
-    dFC_var = np.stack(all_dFC).var(axis=0)
-    
-    return dFC_var
+
+    data = img.get_fdata()
+
+    if labels is None:
+        labels = np.unique(data)
+
+    centroids = center_of_mass(data, labels=data, index=labels)
+
+    if image_space:
+        centroids = apply_affine(img.affine, centroids)
+    else:
+        centroids = np.vstack(centroids)
+
+    return centroids
