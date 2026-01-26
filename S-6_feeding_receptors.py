@@ -83,6 +83,18 @@ receptors_df = receptors_df.sort_values('loading', ascending=False)
 
 fig, axes = split_barplot(receptors_df, x='loading', y='receptor', equal_scale=True,
                           figsize=(8, 5), dpi=200)
+
+# include bootstrapped loadings as dots
+top_idx = receptors_df[receptors_df['sign'] == 1].index
+bottom_idx = receptors_df[receptors_df['sign'] == -1].index[::-1] 
+
+top_dot_data = pls_result["bootres"]["y_loadings_boot"][top_idx, lv].T
+bottom_dot_data = pls_result["bootres"]["y_loadings_boot"][bottom_idx, lv].T
+
+# plot on top of split barplot
+sns.stripplot(ax=axes[1], data=top_dot_data, color='grey', size=0.6, jitter=True, alpha=0.5, orient='h')
+sns.stripplot(ax=axes[0], data=bottom_dot_data, color='grey', size=0.6, jitter=True, alpha=0.5, orient='h')
+
 if savefig:
     plt.savefig('figs/feeding_receptor_loadings.pdf')
 

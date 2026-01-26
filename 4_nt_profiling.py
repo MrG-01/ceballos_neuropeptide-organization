@@ -18,7 +18,7 @@ savefig = False
 receptor_genes = pd.read_csv('data/receptor_gene_expression_Schaefer2018_400_7N_Tian_Subcortex_S4.csv', index_col=0).iloc[:-1]
 
 # load receptor names from data/annotations
-nt_densities = pd.read_csv('data/annotations/nt_receptor_densities_Schaefer400_TianS4.csv', index_col=0)
+nt_densities = pd.read_csv('data/annotations/nt_receptor_densities_Schaefer400_TianS4_HTH.csv', index_col=0)
 
 # Load colors
 palette = divergent_green_orange(n_colors=9, return_palette=True)
@@ -111,25 +111,6 @@ if savefig:
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#                   PLOT DISTRIBUTION OF R^2
-###############################################################################
-# locate values for rows ['OPRK1', 'OPRM1'] and columns ['KOR', 'MOR']
-r2_df = df.T[sorted(df.T.columns)]
-kappa_opioid = r2_df.loc['OPRK1', 'KOR']
-mu_opioid = r2_df.loc['OPRM1', 'MOR']
-colocalization_distribution = r2_df.values.flatten()
-
-# plot kde of colocalization distribution and mark kappa and mu opioid receptors
-fig, ax = plt.subplots(figsize=(5, 3), dpi=200)
-ax.axvline(kappa_opioid, color='blue', linestyle='--', label='OPRK1-KOR')
-ax.axvline(mu_opioid, color='orange', linestyle='--', label='OPRM1-MOR')
-sns.kdeplot(colocalization_distribution, color='grey', label='Other pairs', ax=ax)
-# add legend
-ax.legend(bbox_to_anchor=(1, 1), frameon=False)
-plt.xlabel('Colocalization [R$^2$]')
-sns.despine()
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                          PLOT BY M/I CATEGORIES
 ###############################################################################
 
@@ -190,11 +171,10 @@ r, p_gene = compare_images(kappa_gene, kappa_pet, metric='spearmanr', nulls=kapp
 
 # comparison plot
 plt.figure(figsize=(5, 5))
-sns.regplot(x=kappa_pet, y=kappa_gene, color='grey', ci=None)
+sns.regplot(x=kappa_gene, y=kappa_pet, color='grey', ci=None)
 plt.title(f'r={r:.2f}\n P$_{{SMASH}}$={p_pet:.4f} | P$_{{gene}}$={p_gene:.4f}')
 sns.despine()
-if savefig:
-    plt.savefig('figs/kappa_opioid_receptor_comparison.pdf')
+plt.savefig('figs/kappa_opioid_receptor_comparison.pdf')
 
 # correlate gene and PET map for mu-opioid receptor
 # load maps
@@ -212,9 +192,9 @@ r, p_gene = compare_images(mu_gene, mu_pet, metric='spearmanr', nulls=mu_gene_nu
 
 # comparison plot
 plt.figure(figsize=(5, 5))
-sns.regplot(x=mu_pet, y=mu_gene, color='grey', ci=None)
+sns.regplot(x=mu_gene, y=mu_pet, color='grey', ci=None)
 plt.title(f'r={r:.2f}\n P$_{{SMASH}}$={p_pet:.4f} | P$_{{gene}}$={p_gene:.4f}')
-plt.ylim(0,1)
+plt.xlim(0,1)
 sns.despine()
 
 if savefig:

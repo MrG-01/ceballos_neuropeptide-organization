@@ -64,7 +64,10 @@ for i, ax in enumerate(axes.flat):
     else:
         color = bipolar[1]
     sns.regplot(x=hpa.iloc[i].values, y=ahba.iloc[i].values, ax=ax, color=color)
-    ax.set_title(f'{hpa.index[i]}\nr={r:.2f}, p={p:.2f}')
+    if p < 0.001:
+        ax.set_title(f'{hpa.index[i]}\nr={r:.2f}, p={p:.0e}')
+    else:
+        ax.set_title(f'{hpa.index[i]}\nr={r:.2f}, p={p:.3f}')
     ax.set_xlabel('HPA')
     ax.set_ylabel('AHBA')
 fig.set_tight_layout(True)
