@@ -371,19 +371,19 @@ for tick in ax_heatmap.get_yticklabels():
     tick.set_weight('bold')
 
 ax_heatmap.set_title("Neuropeptide receptor gene families (Ensemble Predictions)", 
-                     fontsize=12, fontweight='bold', pad=15, loc='left')
+                     fontsize=12, fontweight='bold', pad=35, loc='left')
 
 # Add bracket headers for Cortex and Subcortex columns
 # Cortex is first 7 columns, Subcortex is last 8 columns
 ax_heatmap.axvline(7, color='black', linewidth=1.0, linestyle='--')
-# Annotations for column brackets
-ax_heatmap.text(3.5, -1.8, "Cortex", ha='center', fontsize=11, fontweight='bold')
-ax_heatmap.text(11, -1.8, "Subcortex", ha='center', fontsize=11, fontweight='bold')
+# Annotations for column brackets using axes fraction transform to avoid overlap
+ax_heatmap.text(0.23, 1.05, "Cortex", transform=ax_heatmap.transAxes, ha='center', fontsize=11, fontweight='bold')
+ax_heatmap.text(0.73, 1.05, "Subcortex", transform=ax_heatmap.transAxes, ha='center', fontsize=11, fontweight='bold')
 
-# Draw horizontal lines for cortex/subcortex groupings above columns
-ax_heatmap.annotate('', xy=(0.02, 1.01), xycoords='axes fraction', xytext=(0.45, 1.01), 
+# Draw horizontal lines for cortex/subcortex groupings above columns using axes fraction
+ax_heatmap.annotate('', xy=(0.01, 1.02), xycoords='axes fraction', xytext=(0.46, 1.02), 
                     arrowprops=dict(arrowstyle="-", color='black', linewidth=1.5))
-ax_heatmap.annotate('', xy=(0.48, 1.01), xycoords='axes fraction', xytext=(0.98, 1.01), 
+ax_heatmap.annotate('', xy=(0.50, 1.02), xycoords='axes fraction', xytext=(0.99, 1.02), 
                     arrowprops=dict(arrowstyle="-", color='black', linewidth=1.5))
 
 # --- 2. DENDROGRAM ---
@@ -439,7 +439,7 @@ ax_boxplot.set_ylabel("")
 ax_boxplot.set_yticklabels([])
 ax_boxplot.legend().remove()
 sns.despine(ax=ax_boxplot, left=True, trim=True)
-ax_boxplot.set_title("Difference across structures", fontsize=12, fontweight='bold', pad=15)
+ax_boxplot.set_title("Difference across structures", fontsize=12, fontweight='bold', pad=35)
 
 # --- 4. MEDIAN TRACE ---
 # Calculate median predicted score for each structure
@@ -466,7 +466,7 @@ for tick in ax_trace.get_yticklabels():
 
 ax_trace.set_xlim(-0.05, 1.05)
 ax_trace.set_xlabel("Median score", fontsize=10, fontweight='bold')
-ax_trace.set_title("Median trace", fontsize=12, fontweight='bold', pad=15)
+ax_trace.set_title("Median trace", fontsize=12, fontweight='bold', pad=35)
 ax_trace.set_ylim(-0.5, len(df_gene_preds_sorted.index) - 0.5)
 ax_trace.invert_yaxis()
 sns.despine(ax=ax_trace, right=False, left=True, trim=True)
@@ -478,7 +478,7 @@ ax_boxplot.legend(
         plt.Line2D([0], [0], color=yellow, marker='o', ls='', label='Hypothalamus'),
         plt.Line2D([0], [0], color=orange, lw=4, label='Subcortex')
     ], 
-    bbox_to_anchor=(0.5, 1.05), loc='upper center', ncol=3, frameon=False, fontsize=9
+    bbox_to_anchor=(0.5, 1.04), loc='upper center', ncol=3, frameon=False, fontsize=9
 )
 
 # --- 5. LEGEND (BOTTOM PANEL) ---
@@ -493,13 +493,13 @@ for gene in modeled_genes:
     family_genes_dict[fam].append((gene, desc))
 
 col_x = [0.01, 0.26, 0.51, 0.76]
-y_start = 0.90
-dy = 0.08
+y_start = 0.95
+dy = 0.05
 
 for idx, fam in enumerate(families_unique):
     col = idx % 4
     # Calculate y offsets within column
-    y = y_start - (idx // 4) * 0.45
+    y = y_start - (idx // 4) * 0.23
     
     # Render family header
     ax_legend.text(col_x[col], y, fam, fontsize=10, color=family_color_map[fam], 
