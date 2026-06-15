@@ -245,7 +245,7 @@ for i in range(n_splits):
         u_en_train, u_en_test = -u_en_train, -u_en_test
 
     # 5. Evaluate Static Blend (G-PLS + RF)
-    u_static = static_alpha * u_gpls_test + (1 - static_alpha) * u_rf_test
+    u_static = static_alpha * t_gpls_test + (1 - static_alpha) * u_rf_test
     results["G-PLS + RF (Static 70/30)"].append(spearmanr(t_gpls_test, u_static)[0])
 
     # 6. Fit GCN
@@ -304,7 +304,7 @@ for i in range(n_splits):
         subcortex_weights_accum.append(pred_weights[subcortex_test_mask].mean(axis=0))
 
     # Compute dynamically stacked scores for each test region
-    u_dynamic = (pred_weights[:, 0] * u_gpls_test + 
+    u_dynamic = (pred_weights[:, 0] * t_gpls_test + 
                  pred_weights[:, 1] * u_rf_test + 
                  pred_weights[:, 2] * u_en_test +
                  pred_weights[:, 3] * u_gcn_test)

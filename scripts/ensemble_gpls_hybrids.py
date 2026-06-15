@@ -142,7 +142,7 @@ for i in range(n_splits):
         u_rf_test = -u_rf_test
         
     # Blend scores
-    u_blend_rf = alpha * u_gpls_test + (1 - alpha) * u_rf_test
+    u_blend_rf = alpha * t_gpls_test + (1 - alpha) * u_rf_test
     results["G-PLS + Random Forest"].append(spearmanr(t_gpls_test, u_blend_rf)[0])
 
     # 4. Fit 1D ElasticNet Regressor to predict G-PLS behavior scores
@@ -155,7 +155,7 @@ for i in range(n_splits):
         u_en_test = -u_en_test
         
     # Blend scores
-    u_blend_en = alpha * u_gpls_test + (1 - alpha) * u_en_test
+    u_blend_en = alpha * t_gpls_test + (1 - alpha) * u_en_test
     results["G-PLS + ElasticNet"].append(spearmanr(t_gpls_test, u_blend_en)[0])
 
 # Convert to DataFrame

@@ -309,7 +309,7 @@ for i in range(n_splits):
         pred_weights[:, unique_classes[0]] = 1.0
 
     # Gated combination
-    u_dynamic = (pred_weights[:, 0] * u_gpls_test + 
+    u_dynamic = (pred_weights[:, 0] * t_gpls_test + 
                  pred_weights[:, 1] * u_rf_test + 
                  pred_weights[:, 2] * u_en_test +
                  pred_weights[:, 3] * u_gcn_test)

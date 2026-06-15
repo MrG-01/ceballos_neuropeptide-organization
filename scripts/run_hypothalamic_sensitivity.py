@@ -251,7 +251,7 @@ for s in sigmas:
         for c_idx, cls in enumerate(gating.classes_):
             p[:, cls] = p_raw[:, c_idx]
             
-        u_dyn = p[:,0]*u_gpls_test + p[:,1]*u_rf_test + p[:,2]*u_en_test + p[:,3]*u_gcn_fc_test
+        u_dyn = p[:,0]*t_gpls_test + p[:,1]*u_rf_test + p[:,2]*u_en_test + p[:,3]*u_gcn_fc_test
         score = spearmanr(t_gpls_test, u_dyn)[0]
         sigma_results[s].append(score)
 
