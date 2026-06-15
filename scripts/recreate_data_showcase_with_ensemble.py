@@ -307,6 +307,18 @@ network_order = [
 ]
 df_family_preds = df_family_preds.loc[:, network_order]
 
+# Apply row-wise min-max normalization to the 15 network averages
+for family_name in df_family_preds.index:
+    row_vals = df_family_preds.loc[family_name]
+    v_min, v_max = row_vals.min(), row_vals.max()
+    if v_max > v_min:
+        df_family_preds.loc[family_name] = (row_vals - v_min) / (v_max - v_min)
+        # Scale region-level predictions using the same factors for boxplot/trace consistency
+        family_predictions[family_name] = (family_predictions[family_name] - v_min) / (v_max - v_min)
+    else:
+        df_family_preds.loc[family_name] = 0.0
+        family_predictions[family_name] = 0.0
+
 # Map columns to clean names
 clean_columns = [
     'Visual', 'Somatomotor', 'Dorsal attention', 'Ventral attention', 'Fronto-parietal', 'Default', 'Limbic',
