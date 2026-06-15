@@ -314,15 +314,8 @@ clean_columns = [
 ]
 df_family_preds.columns = clean_columns
 
-# Expand from 19 families to 38 individual genes
-gene_predictions = []
-for gene in modeled_genes:
-    fam = gene_to_family[gene]
-    row = df_family_preds.loc[fam].copy()
-    row.name = gene
-    gene_predictions.append(row)
-
-df_gene_preds = pd.DataFrame(gene_predictions)
+# Just use the 19 families directly
+df_gene_preds = df_family_preds.copy()
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                     CLUSTERING (HIERARCHICAL REORDERING)
@@ -341,7 +334,8 @@ families_unique = sorted(list(set(overview_filtered['family_clean'])))
 family_colors = sns.color_palette('tab20', n_colors=len(families_unique))
 family_color_map = {fam: color for fam, color in zip(families_unique, family_colors)}
 
-gene_to_color = {gene: family_color_map[gene_to_family[gene]] for gene in modeled_genes}
+# Color families directly
+gene_to_color = family_color_map
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                     PLOTTING PANEL a & b COMBINED
@@ -376,7 +370,7 @@ for tick in ax_heatmap.get_yticklabels():
     tick.set_color(gene_to_color[gene])
     tick.set_weight('bold')
 
-ax_heatmap.set_title("Neuropeptide receptor-encoding genes (Ensemble Predictions)", 
+ax_heatmap.set_title("Neuropeptide receptor gene families (Ensemble Predictions)", 
                      fontsize=12, fontweight='bold', pad=15, loc='left')
 
 # Add bracket headers for Cortex and Subcortex columns
@@ -415,12 +409,11 @@ regions_df = regions_df.T
 regions_df['structure'] = lut_structures
 
 plot_rows = []
-for gene in df_gene_preds_sorted.index:
-    fam = gene_to_family[gene]
+for fam in df_gene_preds_sorted.index:
     # Extract prediction values for all 455 regions
     fam_vals = regions_df[fam].values
     for val, struct in zip(fam_vals, lut_structures):
-        plot_rows.append({'gene': gene, 'structure': struct, 'expression': val})
+        plot_rows.append({'gene': fam, 'structure': struct, 'expression': val})
         
 df_boxplot = pd.DataFrame(plot_rows)
 
