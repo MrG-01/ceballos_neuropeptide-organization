@@ -24,7 +24,7 @@ done
 
 # reorder the sequences in ./data/evo/01proseqs_align and put them in ./data/evo/02proseqs_ordered
 conda activate nnt
-python 6-1-1_reorder_sequences.py
+python scripts/6-1-1_reorder_sequences.py
 
 # create folder ./data/evo/03codalign if not already created
 mkdir -p ./data/evo/03codalign
@@ -46,7 +46,7 @@ done
 
 # fill in missing sequences in ./data/evo/03codalign
 conda activate nnt
-python 6-1-2_fill_missing_sequences.py
+python scripts/6-1-2_fill_missing_sequences.py
 
 # order the sequences in ./data/evo/04codalign_filled and save in ./data/evo/05codalign_taxnames
 source_directory="./data/evo/04codalign_filled"

@@ -39,7 +39,7 @@ name_map = {'HIP': 'hippocampus',
 atlas_regions['name'] = atlas_regions['name'].str.split('-').str[0].replace(name_map)
 
 # group df first by structure, then network, and then name
-atlas_regions = atlas_regions.groupby(['structure', 'network', 'name']).apply(lambda x: x).reset_index(drop=True)
+atlas_regions = atlas_regions.sort_values(by=['structure', 'network', 'name']).reset_index(drop=True)
 
 # create network label with hemisphere
 atlas_regions = atlas_regions.sort_values('id').reset_index()
@@ -197,7 +197,7 @@ if os.path.exists(pls_result_fn):
 else:
     # behavioral PLS with gene nulls for Y
     pls_result = behavioral_pls(X, Y, n_boot=nperm, n_perm=nperm, rotate=True, permsamples=nulls,
-                                permindices=False, test_split=0, seed=0)
+                                permindices=False, test_split=0, seed=0, n_proc='max')
     np.save(pls_result_fn, pls_result) # type: ignore
 
 cv = pls_result["singvals"]**2 / np.sum(pls_result["singvals"]**2)

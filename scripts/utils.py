@@ -3,8 +3,11 @@ import numpy as np
 import pandas as pd
 from brainconn.distance import distance_wei_floyd, mean_first_passage_time, retrieve_shortest_path
 from scipy.sparse.linalg import expm
-from scipy.stats import ks_2samp
+from scipy.stats import ks_2samp, zscore
 from joblib import Parallel, delayed
+from sklearn.linear_model import LinearRegression
+from scipy.ndimage import center_of_mass
+from nibabel.affines import apply_affine
 
 def morans_i(dist, y, normalize=False, local=False, invert_dist=True):
     """

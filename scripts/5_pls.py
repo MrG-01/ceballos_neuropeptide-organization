@@ -16,7 +16,7 @@ from brainspace.datasets import load_parcellation
 from enigmatoolbox.plotting import plot_subcortical
 from sklearn.model_selection import train_test_split
 
-savefigs = False
+savefigs = True
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                         LOAD DATA
@@ -35,7 +35,7 @@ spectral = [color for i, color in enumerate(sns.color_palette('Spectral')) if i 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                         GENE NULL SETS
 ###############################################################################
-nperm = 10000
+nperm = 5
 
 # Load gene nulls if existent otherwise generate
 if os.path.exists('data/gene_null_sets_Schaefer400_TianS4_HTH.npy'):
@@ -52,7 +52,7 @@ else:
 
     # generate nulls
     nulls = gene_null_set(receptor_genes, non_peptide_genes, distance, n_permutations=nperm, 
-                          n_jobs=32, seed=0)
+                          n_jobs=-1, seed=0)
 
     nulls = np.array(nulls)
     np.save('data/gene_null_sets_Schaefer400_TianS4_HTH.npy', nulls)
@@ -72,7 +72,7 @@ if os.path.exists(pls_result_fn):
 else:
     # behavioral PLS with gene nulls for Y
     pls_result = behavioral_pls(X, Y, n_boot=nperm, n_perm=nperm, rotate=True, permsamples=nulls,
-                                permindices=False, test_split=0, seed=0)
+                                permindices=False, test_split=0, seed=0, n_proc='max')
     np.save(pls_result_fn, pls_result)
 
 # check significance
@@ -111,7 +111,7 @@ else:
     # transpose to have last dimension as first
     nulls = np.transpose(nulls, (2, 1, 0))
     pls_result_X = behavioral_pls(X, Y, n_boot=nperm, n_perm=nperm, rotate=True, permsamples=nulls,
-                                  permindices=False, test_split=0, seed=0)
+                                  permindices=False, test_split=0, seed=0, n_proc='max')
     with open(pls_result_X_fn, 'wb') as f:
         # Use protocol 4 as it's a large file
         pickle.dump(pls_result_X, f, protocol=4)
@@ -131,12 +131,16 @@ scores_fn = 'results/pls_scores_Schaefer400_TianS4_HTH.csv'
 
 if os.path.exists(scores_fn):
     scores = pd.read_csv(scores_fn)
+    scores.index = receptor_genes.index
+    if 'cognitive' in scores.columns:
+        scores = scores.rename(columns={'cognitive': 'term'})
 else:
     xscore = pls_result["x_scores"][:, lv]
     yscore = pls_result["y_scores"][:, lv]
     scores = pd.DataFrame({'networks': receptor_genes.index,
                            'receptor': xscore, 
-                           'term': yscore})
+                           'term': yscore},
+                          index=receptor_genes.index)
 
 atlas_info = pd.read_csv('data/parcellations/Schaefer2018_400_7N_Tian_Subcortex_S4_LUT.csv', index_col=0)
 atlas_info['network'].iloc[-1] = 'Hypothalamus'
@@ -267,11 +271,16 @@ if savefigs:
 scores_fn = 'results/pls_scores_Schaefer400_TianS4_HTH.csv'
 if os.path.exists(scores_fn):
     plot_df = pd.read_csv(scores_fn)
+    plot_df.index = receptor_genes.index
+    if 'cognitive' in plot_df.columns:
+        plot_df = plot_df.rename(columns={'cognitive': 'term'})
 else:
     # turn pls scores into dataframe for plotting
-    plot_df = pd.DataFrame({'term': pls_result["y_scores"][:, lv], 'receptor': pls_result["x_scores"][:, lv]})
-    plot_data = index_structure(plot_df, structure='CTX')
+    plot_df = pd.DataFrame({'term': pls_result["y_scores"][:, lv], 'receptor': pls_result["x_scores"][:, lv]},
+                           index=receptor_genes.index)
     # plot_df.to_csv('results/pls_scores_Schaefer400_TianS4_HTH.csv', index=False)
+
+plot_data = index_structure(plot_df, structure='CTX')
 
 # %% CORTEX
 # load surface and parcellation
@@ -287,11 +296,11 @@ for roi in regions:
     roi_value = plot_data['term'].values[roi]
     layer_data = np.where(atlas==roi, roi_value, atlas_values)
 
-p = Plot(lh, views=['lateral','medial'], zoom=1.2, size=(1200, 800), dpi=200, brightness=0.6)
+p = Plot(lh, views=['lateral','medial'], zoom=1.2, size=(1200, 800), brightness=0.6)
 p.add_layer(layer_data, cmap=divergent_green_orange(), tick_labels=['min', 'max'], cbar_label='Term scores')
 
 if savefigs:
-    p.build(dpi=300, save_as=f'figures/term_scores_brainmap.pdf');
+    p.build(dpi=300, save_as=f'figs/term_scores_brainmap.pdf');
 else:
     p.build(dpi=300);
 
@@ -300,11 +309,11 @@ for roi in regions:
     roi_value = plot_data['receptor'].values[roi]
     layer_data = np.where(atlas==roi, roi_value, atlas_values)
 
-p = Plot(lh, views=['lateral','medial'], zoom=1.2, size=(1200, 800), dpi=200, brightness=0.6)
+p = Plot(lh, views=['lateral','medial'], zoom=1.2, size=(1200, 800), brightness=0.6)
 p.add_layer(layer_data, cmap=divergent_green_orange(), tick_labels=['min', 'max'], cbar_label='Receptor scores')
 
 if savefigs:
-    p.build(dpi=300, save_as=f'figures/receptor_scores_brainmap.pdf');
+    p.build(dpi=300, save_as=f'figs/receptor_scores_brainmap.pdf');
 else:
     p.build(dpi=300);
     

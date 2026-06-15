@@ -10,20 +10,20 @@ from netneurotools.stats import get_dominance_stats
 from plot_utils import divergent_green_orange
 from utils import index_structure
 
-savefig = False
+savefig = True
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                         LOAD DATA
 ###############################################################################
 # load gene expression data
-genes = pd.read_csv('results/abagen_rnaseq_interpolation_normalized.csv')
+genes = pd.read_csv('results/abagen_rnaseq_interpolation_normalized.csv', index_col=0)
 receptor_list = pd.read_csv('data/receptor_filtered.csv', index_col=0).index.to_list()
 receptor_genes = genes[genes.columns.intersection(receptor_list)]
 receptor_genes = index_structure(receptor_genes, structure='CTX')
 
 # load receptor names from data/annotations
 nt_densities = pd.read_csv('data/annotations/nt_receptor_densities_Schaefer400_TianS4_HTH.csv', index_col=0)
-nt_densities = index_structure(nt_densities, structure='CTX')
+nt_densities = nt_densities.iloc[54:]
 # strip column names, keep only first part of the name
 nt_densities.columns = [name.split('_')[0] for name in nt_densities.columns]
 nt_densities.rename(columns={'GABAa-bz': 'GABAa'}, inplace=True) # type: ignore
@@ -43,7 +43,7 @@ else:
         y = sstats.zscore(receptor_genes[name].values, ddof=1)
         
         # dominance analysis
-        model_metrics, model_r_sq = get_dominance_stats(X, y, n_jobs=64)
+        model_metrics, model_r_sq = get_dominance_stats(X, y, n_jobs=-1)
         dom_list.append((model_metrics, model_r_sq))
     dom_total = [_[0]["total_dominance"] for _ in dom_list]
     dom_total = np.array(dom_total)

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pingouin as pg
 from plot_utils import divergent_green_orange
 
-savefig = False
+savefig = True
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                         LOAD DATA
 ###############################################################################

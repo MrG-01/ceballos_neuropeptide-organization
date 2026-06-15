@@ -9,7 +9,7 @@ from neuromaps.stats import compare_images
 from netneurotools.stats import get_dominance_stats
 from plot_utils import divergent_green_orange
 
-savefig = False
+savefig = True
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                         LOAD DATA
@@ -223,7 +223,7 @@ else:
             y = sstats.zscore(receptor_genes[name].values, ddof=1)
             
             # dominance analysis
-            model_metrics, model_r_sq = get_dominance_stats(X, y, n_jobs=32)
+            model_metrics, model_r_sq = get_dominance_stats(X, y, n_jobs=-1)
             dom_list.append((model_metrics, model_r_sq))
         dom_total_null = [_[0]["total_dominance"] for _ in dom_list]
         dom_total_null = np.array(dom_total_null)

@@ -12,6 +12,7 @@ from abagen.allen import _get_weights
 from scipy.spatial import distance_matrix
 from abagen import io
 from plot_utils import divergent_green_orange
+from utils import scaled_robust_sigmoid
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                                LOAD RNAseq DATA
@@ -299,4 +300,14 @@ final = pd.concat([final, exp], axis=0)
 
 # reorder by index
 final = final.loc[sorted(final.index)]
+
+# Save unnormalized interpolation
+final.to_csv('results/abagen_rnaseq_interpolation.csv')
+
+# Compute and save normalized interpolation
+normalized = pd.DataFrame(np.log1p(final.values), columns=final.columns, index=final.index)
+normalized = normalized.apply(scaled_robust_sigmoid, axis=1, result_type='broadcast')
+normalized = normalized.loc[:, normalized.apply(lambda x: np.percentile(x, 75) - np.percentile(x, 25) != 0).values]
+normalized = normalized.apply(scaled_robust_sigmoid, axis=0, result_type='broadcast')
+normalized.to_csv('results/abagen_rnaseq_interpolation_normalized.csv')
 

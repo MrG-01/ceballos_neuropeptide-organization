@@ -10,7 +10,7 @@ from sklearn.decomposition import PCA
 from plot_utils import divergent_green_yellow_orange
 from mpl_toolkits.mplot3d import Axes3D
 
-savefig = False
+savefig = True
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                              LOAD DATA

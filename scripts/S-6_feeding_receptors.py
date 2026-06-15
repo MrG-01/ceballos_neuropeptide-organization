@@ -8,7 +8,7 @@ from pyls import behavioral_pls
 from nilearn.maskers import NiftiLabelsMasker
 from plot_utils import split_barplot
 
-savefig = False
+savefig = True
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                              LOAD DATA
 ###############################################################################
@@ -32,9 +32,13 @@ rois = receptor_genes_filt.index
 gene_idx = [receptor_genes.columns.get_loc(gene_name) for gene_name in peptides]
 roi_idx = [receptor_genes.index.get_loc(roi_name) for roi_name in rois]
 
+def extract_signals(masker, file_path, roi_idx):
+    arr = masker.fit_transform(file_path)
+    return arr[0, roi_idx] if arr.ndim == 2 else arr[roi_idx]
+
 masker = NiftiLabelsMasker('data/parcellations/Schaefer2018_400_7N_Tian_Subcortex_S4_space-MNI152_den-1mm.nii.gz')
-eating = masker.fit_transform('data/eating_term.nii.gz')[0, roi_idx]
-food = masker.fit_transform('data/food_term.nii.gz')[0, roi_idx]
+eating = extract_signals(masker, 'data/eating_term.nii.gz', roi_idx)
+food = extract_signals(masker, 'data/food_term.nii.gz', roi_idx)
 
 # load gene nulls for receptor genes
 nulls = np.load('data/gene_null_sets_Schaefer400_TianS4_HTH.npy')[:, roi_idx]
@@ -52,7 +56,7 @@ nperm = len(nulls)  # number of permutations
 
 # behavioral PLS with gene nulls for Y
 pls_result = behavioral_pls(X, Y, n_boot=nperm, n_perm=nperm, rotate=True, permsamples=nulls,
-                            permindices=False, test_split=0, seed=0)
+                            permindices=False, test_split=0, seed=0, n_proc='max')
 
 # check significance
 cv = pls_result["singvals"]**2 / np.sum(pls_result["singvals"]**2)

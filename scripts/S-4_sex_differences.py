@@ -8,7 +8,7 @@ from plot_utils import divergent_green_orange
 from abagen.images import check_atlas
 from abagen import get_expression_data
 
-savefig = False
+savefig = True
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                      LOAD ATLAS AND RECEPTOR NAMES
@@ -90,7 +90,7 @@ atlas_regions['name'] = atlas_regions['name'].str.split('-').str[0].replace(name
 female_df.index = atlas_regions['id'].values
 
 # group df first by structure, then network, and then name
-atlas_regions = atlas_regions.groupby(['structure', 'network', 'name']).apply(lambda x: x).reset_index(drop=True)
+atlas_regions = atlas_regions.sort_values(by=['structure', 'network', 'name']).reset_index(drop=True)
 
 # average by network
 atlas_regions = atlas_regions.sort_values('id').reset_index()

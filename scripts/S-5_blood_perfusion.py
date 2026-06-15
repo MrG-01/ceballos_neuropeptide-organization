@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from neuromaps.stats import compare_images
 from utils import index_structure
 
-savefig = False
+savefig = True
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                         CORRELATE GENE & CBF DATA

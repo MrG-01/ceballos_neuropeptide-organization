@@ -1,53 +1,67 @@
-# Python
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
-*.egg-info/
-*.egg
-*.env
-*.venv
+*$py.class
 *.pyc
-*.pkl
-*.pickle
-*.npy
+*.pyo
+*.pyd
+*.so
+.Python
 
-# Neuroimaging
-*.nii
-*.nii.gz
-*.gii
+# Package environments
+.venv/
+venv/
+env/
+.conda/
+.env
 
-# Logs
-*.log
+# Package managers and environments
+.pixi/
+.snakemake/
 
-# IDEs and editors
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.Spotlight-V100
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.TemporaryItems
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Project Data and Results
+# Ignore everything in data/ and results/ except structural .gitkeep files
+data/*
+!data/.gitkeep
+!data/README.md
+data_old/
+
+results/*
+!results/.gitkeep
+!results/README.md
+results_old/
+
+# Ignore all generated figures except .gitkeep
+figs/*
+!figs/.gitkeep
+
+# IDEs and Editors
 .vscode/
 .idea/
 *.swp
+*~
+*.bak
 
-# macOS
-.DS_Store
-
-# Other
-*.pdf
-*.csv
-*.gz
-*.tsv
-*.txt
-*.json
-*.npz
-*.tex
-*.eps
-*.jpeg
-*.mat
-
-# Folders
+# Temporary files and scratch directories
 tmp/
 preparation/
-data/old/
-data/tmp/
-data/atl-schaefer2018
-data/microarray/
-data/rnaseq/
-results/GO/
-results/fasta/
-results/old/
-results/tmp/
+scratch/

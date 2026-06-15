@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import spearmanr
 from plot_utils import divergent_green_orange
 
-savefig = False 
+savefig = True
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                              LOAD HPA DATA

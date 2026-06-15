@@ -500,7 +500,7 @@ def split_barplot(df, x=None, y=None, top=None, equal_scale=False, figsize=(6, 1
             axes[1].autoscale(False)
             # set ytick majors are at same positions as left axis
             yticklabels = positive_df[y].tolist() + [''] * (max_yticks - len(positive_df))
-            axes[1].set_yticks(axes[0].get_yticks() + 0.5,
+            axes[1].set_yticks(np.array(axes[0].get_yticks()) + 0.5,
                                labels=yticklabels)
             # turn yticks off
             axes[0].tick_params(axis='y', which='both', left=False, right=False)
@@ -522,7 +522,7 @@ def split_barplot(df, x=None, y=None, top=None, equal_scale=False, figsize=(6, 1
             axes[0].autoscale(False)
             # set ytick majors are at same positions as left axis
             yticklabels = negative_df[y].tolist() + [''] * (max_yticks - len(negative_df))
-            axes[0].set_yticks(axes[1].get_yticks() + 0.5,
+            axes[0].set_yticks(np.array(axes[1].get_yticks()) + 0.5,
                                labels=yticklabels)
             # turn yticks off
             axes[0].tick_params(axis='y', which='both', left=False, right=False)

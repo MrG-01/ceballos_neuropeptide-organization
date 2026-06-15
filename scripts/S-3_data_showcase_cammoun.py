@@ -7,7 +7,7 @@ from pyls import behavioral_pls
 from scipy.stats import zscore, spearmanr
 from plot_utils import divergent_green_orange
 
-savefig = False
+savefig = True
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                              LOAD DATA
@@ -15,7 +15,6 @@ savefig = False
 # load genes and gene list
 receptor_genes = pd.read_csv('data/receptor_gene_expression_Cammoun2012_250_7N_Freesurfer_Subcortex.csv', index_col=0)
 receptor_names = receptor_genes.columns
-receptor_list = pd.read_csv('data/receptor_list.csv')
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                              RAW DATA PLOT
@@ -28,7 +27,7 @@ atlas_regions = pd.read_csv('./data/parcellations/Cammoun2012_7N_Freesurfer_Subc
 atlas_regions = atlas_regions[atlas_regions['scale'] == 'scale250'].iloc[:-1]
 # rename label in atlas_info to name and yeo_7 to network
 atlas_regions = atlas_regions.rename(columns={'label': 'name', 'yeo_7': 'network'})
-atlas_regions = atlas_regions.groupby(['structure', 'network', 'name']).apply(lambda x: x).reset_index(drop=True)
+atlas_regions = atlas_regions.sort_values(by=['structure', 'network', 'name']).reset_index(drop=True)
 atlas_regions['name_alt'] = atlas_regions['hemisphere'] + '_' + atlas_regions['name']
 atlas_regions['network_alt'] = atlas_regions.apply(lambda x: x['name'] if x['structure'] == 'subcortex' else x['network'], axis=1)
 atlas_regions['network_alt'] = atlas_regions['hemisphere'] + '_' + atlas_regions['network_alt']
