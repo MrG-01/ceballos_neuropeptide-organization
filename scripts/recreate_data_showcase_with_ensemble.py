@@ -356,47 +356,67 @@ print("Creating combined Matplotlib figure...")
 fig = plt.figure(figsize=(15, 14), dpi=300)
 
 # Main GridSpec: plots in top row, legend in bottom row
-gs_main = gridspec.GridSpec(2, 1, height_ratios=[10, 2.5], hspace=0.18)
+gs_main = gridspec.GridSpec(2, 1, height_ratios=[10, 2.5], hspace=0.35)
 
 # Plots GridSpec (Heatmap, Dendrogram, Boxplot, Trace)
 gs_plots = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs_main[0], 
                                             width_ratios=[6, 0.8, 3.5, 1.2], wspace=0.06)
 
-ax_heatmap = fig.add_subplot(gs_plots[0])
+# Split the first slot of gs_plots into two: Cortex (7 columns) and Subcortex (8 columns)
+gs_heatmap = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs_plots[0], 
+                                              width_ratios=[7, 8], wspace=0.08)
+
+ax_heatmap_cortex = fig.add_subplot(gs_heatmap[0])
+ax_heatmap_subcortex = fig.add_subplot(gs_heatmap[1])
 ax_dendro = fig.add_subplot(gs_plots[1])
 ax_boxplot = fig.add_subplot(gs_plots[2])
 ax_trace = fig.add_subplot(gs_plots[3])
 
-# --- 1. HEATMAP ---
-max_val = df_gene_preds_sorted.values.max()
-sns.heatmap(df_gene_preds_sorted, ax=ax_heatmap, cmap=divergent_green_orange(), 
-            cbar=False, vmin=0, vmax=max_val, linewidths=0.01, linecolor='white')
+# --- 1. HEATMAPS ---
+import matplotlib.colors as mpc
+cortex_cmap = mpc.LinearSegmentedColormap.from_list(
+    'cortex_orange', ["#f6f6f6", "#f7ccbd", "#f7a384", "#f8794b", "#f84f12"]
+)
+subcortex_cmap = mpc.LinearSegmentedColormap.from_list(
+    'subcortex_green', ["#f6f6f6", "#97bdb7", "#53a094", "#308675", "#0c6c55"]
+)
 
-# Configure labels and ticks
-ax_heatmap.set_xticklabels(ax_heatmap.get_xticklabels(), rotation=90, ha='center', fontsize=9)
-ax_heatmap.set_yticklabels(ax_heatmap.get_yticklabels(), rotation=0, fontsize=9)
+# Cortex heatmap (first 7 columns)
+sns.heatmap(df_gene_preds_sorted.iloc[:, :7], ax=ax_heatmap_cortex, cmap=cortex_cmap, 
+            cbar=False, vmin=0, vmax=1.0, linewidths=0.01, linecolor='white')
 
-# Color y-tick labels by family color
-for tick in ax_heatmap.get_yticklabels():
+# Subcortex heatmap (last 8 columns)
+sns.heatmap(df_gene_preds_sorted.iloc[:, 7:], ax=ax_heatmap_subcortex, cmap=subcortex_cmap, 
+            cbar=False, vmin=0, vmax=1.0, linewidths=0.01, linecolor='white')
+
+# Configure labels and ticks for Cortex
+ax_heatmap_cortex.set_xticklabels(ax_heatmap_cortex.get_xticklabels(), rotation=90, ha='center', fontsize=9)
+ax_heatmap_cortex.set_yticklabels(ax_heatmap_cortex.get_yticklabels(), rotation=0, fontsize=9)
+
+# Color y-tick labels on Cortex by family color
+for tick in ax_heatmap_cortex.get_yticklabels():
     gene = tick.get_text()
     tick.set_color(gene_to_color[gene])
     tick.set_weight('bold')
 
-ax_heatmap.set_title("Neuropeptide receptor gene families (Ensemble Predictions)", 
-                     fontsize=12, fontweight='bold', pad=35, loc='left')
+# Configure labels and ticks for Subcortex
+ax_heatmap_subcortex.set_xticklabels(ax_heatmap_subcortex.get_xticklabels(), rotation=90, ha='center', fontsize=9)
+ax_heatmap_subcortex.set_yticklabels([]) # Hide y-ticks on Subcortex heatmap
+ax_heatmap_subcortex.set_ylabel('')
 
-# Add bracket headers for Cortex and Subcortex columns
-# Cortex is first 7 columns, Subcortex is last 8 columns
-ax_heatmap.axvline(7, color='black', linewidth=1.0, linestyle='--')
-# Annotations for column brackets using axes fraction transform to avoid overlap
-ax_heatmap.text(0.23, 1.05, "Cortex", transform=ax_heatmap.transAxes, ha='center', fontsize=11, fontweight='bold')
-ax_heatmap.text(0.73, 1.05, "Subcortex", transform=ax_heatmap.transAxes, ha='center', fontsize=11, fontweight='bold')
+# Set title on the left heatmap (Cortex) which will overflow nicely to the right
+ax_heatmap_cortex.set_title("Neuropeptide receptor gene families (Ensemble Predictions)", 
+                            fontsize=12, fontweight='bold', pad=35, loc='left')
 
-# Draw horizontal lines for cortex/subcortex groupings above columns using axes fraction
-ax_heatmap.annotate('', xy=(0.01, 1.02), xycoords='axes fraction', xytext=(0.46, 1.02), 
-                    arrowprops=dict(arrowstyle="-", color='black', linewidth=1.5))
-ax_heatmap.annotate('', xy=(0.50, 1.02), xycoords='axes fraction', xytext=(0.99, 1.02), 
-                    arrowprops=dict(arrowstyle="-", color='black', linewidth=1.5))
+# Annotations for column brackets using axes fraction transform for each subplot
+ax_heatmap_cortex.text(0.5, 1.05, "Cortex", transform=ax_heatmap_cortex.transAxes, ha='center', fontsize=11, fontweight='bold')
+ax_heatmap_subcortex.text(0.5, 1.05, "Subcortex", transform=ax_heatmap_subcortex.transAxes, ha='center', fontsize=11, fontweight='bold')
+
+# Draw horizontal lines for cortex/subcortex groupings above columns
+ax_heatmap_cortex.annotate('', xy=(0.01, 1.02), xycoords='axes fraction', xytext=(0.99, 1.02), 
+                           arrowprops=dict(arrowstyle="-", color='black', linewidth=1.5))
+ax_heatmap_subcortex.annotate('', xy=(0.01, 1.02), xycoords='axes fraction', xytext=(0.99, 1.02), 
+                              arrowprops=dict(arrowstyle="-", color='black', linewidth=1.5))
 
 # --- 2. DENDROGRAM ---
 # Draw horizontal dendrogram aligned with heatmap rows
@@ -505,13 +525,13 @@ for gene in modeled_genes:
     family_genes_dict[fam].append((gene, desc))
 
 col_x = [0.01, 0.26, 0.51, 0.76]
-y_start = 0.95
-dy = 0.05
+y_start = 0.88
+dy = 0.045
 
 for idx, fam in enumerate(families_unique):
     col = idx % 4
     # Calculate y offsets within column
-    y = y_start - (idx // 4) * 0.23
+    y = y_start - (idx // 4) * 0.21
     
     # Render family header
     ax_legend.text(col_x[col], y, fam, fontsize=10, color=family_color_map[fam], 
