@@ -28,7 +28,8 @@ expected_figs = [
     # 4_nt_profiling.py
     "figs/colocalization_nt_peptides.pdf",
     "figs/colocalization_nt_peptides_ensemble.pdf",
-    "results/da_nt_peptides_ensemble_total_dominance.npy",
+    "results/shap_nt_peptides_ensemble_r2.npy",
+    "results/shap_nt_peptides_ensemble_importance.npy",
     "figs/ionotropic_metabotropic_receptors.pdf",
     "figs/kappa_opioid_receptor_comparison.pdf",
     "figs/mu_opioid_receptor_comparison.pdf",
@@ -189,7 +190,8 @@ rule predict_colocalization_with_ensemble:
     output:
         "figs/colocalization_nt_peptides_ensemble.pdf",
         "figs/colocalization_nt_peptides_ensemble.png",
-        "results/da_nt_peptides_ensemble_total_dominance.npy"
+        "results/shap_nt_peptides_ensemble_r2.npy",
+        "results/shap_nt_peptides_ensemble_importance.npy"
     shell:
         "python {input.script}"
 

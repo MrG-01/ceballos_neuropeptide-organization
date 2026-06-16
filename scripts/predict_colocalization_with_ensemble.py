@@ -246,58 +246,83 @@ for idx, gene_name in enumerate(peptide_names):
     predicted_maps[gene_name] = u_norm
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#                         DOMINANCE ANALYSIS
+#                         RANDOM FOREST & SHAP ANALYSIS
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print("Performing dominance analysis with predicted maps...")
-da_fn = 'results/da_nt_peptides_ensemble_total_dominance.npy'
-if os.path.exists(da_fn):
-    dom_total = np.load(da_fn)
+print("Performing Random Forest and SHAP colocalization analysis with predicted maps...")
+import shap
+
+r2_fn = 'results/shap_nt_peptides_ensemble_r2.npy'
+imp_fn = 'results/shap_nt_peptides_ensemble_importance.npy'
+
+if os.path.exists(r2_fn) and os.path.exists(imp_fn):
+    r2_scores = np.load(r2_fn)
+    shap_importances = np.load(imp_fn)
 else:
-    dom_list = []
+    r2_list = []
+    shap_imp_list = []
     # PET densities standardized as predictors
     X_pet = zscore(nt_densities.values, ddof=1)
     
     for name in peptide_names:
+        # Target predicted map (excluding hypothalamus) standardized
         y_pred = zscore(predicted_maps[name][:-1], ddof=1)
-        model_metrics, model_r_sq = get_dominance_stats(X_pet, y_pred, n_jobs=-1)
-        dom_list.append((model_metrics, model_r_sq))
-    dom_total = [_[0]["total_dominance"] for _ in dom_list]
-    dom_total = np.array(dom_total)
-    np.save(da_fn, dom_total)
+        
+        # Fit Random Forest Regressor
+        rf_coloc = RandomForestRegressor(n_estimators=100, max_depth=5, random_state=42, n_jobs=-1)
+        rf_coloc.fit(X_pet, y_pred)
+        
+        # Compute in-sample R2 score
+        r2_val = rf_coloc.score(X_pet, y_pred)
+        r2_list.append(r2_val)
+        
+        # Compute SHAP values
+        explainer = shap.TreeExplainer(rf_coloc)
+        shap_vals = explainer.shap_values(X_pet) # shape (454, 16)
+        
+        # Compute mean absolute SHAP for each of the 16 PET receptors
+        mean_abs_shap = np.mean(np.abs(shap_vals), axis=0) # shape (16,)
+        shap_imp_list.append(mean_abs_shap)
+        
+    r2_scores = np.array(r2_list)
+    shap_importances = np.array(shap_imp_list) # shape (38, 16)
+    
+    np.save(r2_fn, r2_scores)
+    np.save(imp_fn, shap_importances)
 
-dom_rel = (dom_total / dom_total.sum(axis=0)) * 100
+# Calculate relative contributions for plotting (each row sums to 100%)
+shap_rel = np.zeros_like(shap_importances)
+row_sums = shap_importances.sum(axis=1, keepdims=True)
+non_zero_rows = (row_sums > 0).squeeze()
+shap_rel[non_zero_rows] = (shap_importances[non_zero_rows] / row_sums[non_zero_rows]) * 100
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#                         PLOT DOMINANCE HEATMAP
+#                         PLOT SHAP HEATMAP
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print("Generating figures...")
-df = pd.DataFrame(dom_total.T, columns=peptide_names, index=nt_names)
-receptors_by_dominance = df.sum(axis=0).sort_values(ascending=True).index
-pep_idx = [df.columns.get_loc(_) for _ in receptors_by_dominance]
-df = df[receptors_by_dominance]
+# Create a DataFrame of relative SHAP importances
+plot_df = pd.DataFrame(shap_rel, index=peptide_names, columns=nt_names)
 
-# Group by Metab/Iono
-nt_classes = pd.read_csv('data/annotations/nt_receptor_classes.csv', index_col=0)
-mi = nt_classes['Metab/Iono'].loc[nt_names]
-idf = df.loc[mi[mi == 'ionotropic'].index]
-mdf = df.loc[mi[mi == 'metabotropic'].index]
-df = pd.concat((idf, mdf), axis=0)
-nt_idx = [np.where(nt_names == _)[0][0] for _ in df.index]
+# Define Series of Random Forest R2 scores
+r2_series = pd.Series(r2_scores, index=peptide_names)
 
-plot_df = pd.DataFrame(dom_rel[pep_idx], index=receptors_by_dominance, columns=nt_names)
+# Sort peptide receptors by R2 score ascending
+receptors_by_r2 = r2_series.sort_values(ascending=True).index
+plot_df = plot_df.loc[receptors_by_r2]
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 10), gridspec_kw={'width_ratios': [1, 3]}, dpi=300)
 
 palette = divergent_green_orange(n_colors=9, return_palette=True)
 orange_color = [palette[1], palette[-2]][1]
 
-sns.barplot(x=df.sum(axis=0), y=receptors_by_dominance, ax=ax1, color=orange_color)
+# Barplot of R2 scores
+sns.barplot(x=r2_series.loc[receptors_by_r2], y=receptors_by_r2, ax=ax1, color=orange_color)
 ax1.set_xlabel('R$^2$', fontsize=14)
 ax1.set_xlim(0, 1)
 ax1.set_yticks([])
 ax1.invert_xaxis()
 sns.despine(ax=ax1, left=True)
 
+# Heatmap of relative SHAP importances
 max_val = plot_df.max().round(0).max()
 sns.heatmap(plot_df, cbar_kws={'shrink': 0.5}, ax=ax2, cmap=divergent_green_orange(), 
             center=0, vmin=0, vmax=max_val, linecolor='white', linewidths=0.5)
