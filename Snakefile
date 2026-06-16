@@ -103,7 +103,9 @@ expected_figs = [
     "figs/ensemble_auc_comparison.pdf",
     "figs/ensemble_roc_curves.pdf",
     "figs/ensemble_pr_comparison.pdf",
-    "figs/ensemble_pr_curves.pdf"
+    "figs/ensemble_pr_curves.pdf",
+    "figs/ensemble_loadings_comparison.pdf",
+    "results/ensemble_loadings_comparison.csv"
 ]
 
 rule all:
@@ -472,5 +474,22 @@ rule compare_ensemble_auc:
         plot_roc="figs/ensemble_roc_curves.pdf",
         plot_pr="figs/ensemble_pr_comparison.pdf",
         plot_pr_curve="figs/ensemble_pr_curves.pdf"
+    shell:
+        "python {input.script}"
+
+rule compare_ensemble_loadings:
+    input:
+        script="scripts/compare_ensemble_loadings.py",
+        neurosynth="data/neurosynth_Schaefer400_TianS4.csv",
+        receptor_genes="data/receptor_gene_expression_Schaefer2018_400_7N_Tian_Subcortex_S4.csv",
+        lut="data/parcellations/Schaefer2018_400_7N_Tian_Subcortex_S4_LUT.csv",
+        overview="data/receptor_overview.csv",
+        parcellation="data/parcellations/Schaefer2018_400_7N_Tian_Subcortex_S4_space-MNI152_den-1mm.nii.gz",
+        sc="data/template_parc-Schaefer400_TianS4_desc-SC.npy",
+        fc="data/template_parc-Schaefer400_TianS4_desc-FC.npy"
+    output:
+        csv="results/ensemble_loadings_comparison.csv",
+        plot_pdf="figs/ensemble_loadings_comparison.pdf",
+        plot_png="figs/ensemble_loadings_comparison.png"
     shell:
         "python {input.script}"
