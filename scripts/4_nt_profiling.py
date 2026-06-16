@@ -101,6 +101,34 @@ sns.heatmap(plot_df, cbar_kws={'shrink': 0.5},
             ax=ax2, cmap=divergent_green_orange(), center=0, vmin=0, vmax=max_val,
             linecolor='white', linewidths=0.5)
 
+# Color-code y-tick labels by family color and highlight OPRM1 (purple) and OPRK1 (dodgerblue)
+overview = pd.read_csv('data/receptor_overview.csv')
+modeled_genes = list(plot_df.index)
+overview_filtered = overview[overview['gene'].isin(modeled_genes)].copy()
+overview_filtered['family'] = overview_filtered['family'].fillna(overview_filtered['gene'])
+overview_filtered['family'] = overview_filtered['family'].replace('None', np.nan)
+overview_filtered['family'] = overview_filtered['family'].fillna(overview_filtered['gene'])
+gene_to_family = dict(zip(overview_filtered['gene'], overview_filtered['family']))
+
+families_unique = sorted(list(set(overview_filtered['family'])))
+family_colors = sns.color_palette('tab20', n_colors=len(families_unique))
+family_color_map = {fam: color for fam, color in zip(families_unique, family_colors)}
+
+for tick in ax2.get_yticklabels():
+    gene = tick.get_text()
+    tick.set_fontsize(8.5)
+    if gene == 'OPRM1':
+        tick.set_color('purple')
+        tick.set_weight('bold')
+    elif gene == 'OPRK1':
+        tick.set_color('dodgerblue')
+        tick.set_weight('bold')
+    else:
+        fam = gene_to_family.get(gene)
+        if fam and fam in family_color_map:
+            tick.set_color(family_color_map[fam])
+            tick.set_weight('bold')
+
 cbar = ax2.collections[0].colorbar
 cbar.set_label('Relative contribution (%)', size=14)
 ax2.set_xticklabels(plot_df.columns, rotation=90, horizontalalignment='center')
@@ -108,6 +136,7 @@ plt.tight_layout()
 
 if savefig:
     plt.savefig('figs/colocalization_nt_peptides.pdf')
+    plt.savefig('figs/colocalization_nt_peptides.png', dpi=300)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
