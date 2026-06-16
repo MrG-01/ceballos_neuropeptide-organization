@@ -105,7 +105,9 @@ expected_figs = [
     "figs/ensemble_pr_comparison.pdf",
     "figs/ensemble_pr_curves.pdf",
     "figs/ensemble_loadings_comparison.pdf",
-    "results/ensemble_loadings_comparison.csv"
+    "results/ensemble_loadings_comparison.csv",
+    "figs/ensemble_term_loadings_comparison.pdf",
+    "results/ensemble_term_loadings_comparison.csv"
 ]
 
 rule all:
@@ -490,6 +492,9 @@ rule compare_ensemble_loadings:
     output:
         csv="results/ensemble_loadings_comparison.csv",
         plot_pdf="figs/ensemble_loadings_comparison.pdf",
-        plot_png="figs/ensemble_loadings_comparison.png"
+        plot_png="figs/ensemble_loadings_comparison.png",
+        term_csv="results/ensemble_term_loadings_comparison.csv",
+        term_pdf="figs/ensemble_term_loadings_comparison.pdf",
+        term_png="figs/ensemble_term_loadings_comparison.png"
     shell:
         "python {input.script}"

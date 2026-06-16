@@ -295,3 +295,60 @@ plt.savefig('figs/ensemble_loadings_comparison.pdf', bbox_inches='tight')
 plt.savefig('figs/ensemble_loadings_comparison.png', dpi=300, bbox_inches='tight')
 plt.close()
 print("Figure successfully generated!")
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#                         COMPUTE TERM LOADINGS
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+print("Computing Neurosynth term loadings across models...")
+term_names = ns.columns.values
+term_loadings = {}
+
+# Compute Spearman correlation of each Neurosynth term map with the respective predicted score map
+term_loadings["PLSC"] = [spearmanr(Y[:, k], t_plsc)[0] for k in range(Y.shape[1])]
+term_loadings["G-PLS"] = [spearmanr(Y[:, k], t_gpls)[0] for k in range(Y.shape[1])]
+term_loadings["Random Forest"] = [spearmanr(Y[:, k], u_rf)[0] for k in range(Y.shape[1])]
+term_loadings["ElasticNet"] = [spearmanr(Y[:, k], u_en)[0] for k in range(Y.shape[1])]
+term_loadings["BrainGCN"] = [spearmanr(Y[:, k], u_gcn)[0] for k in range(Y.shape[1])]
+term_loadings["Ensemble"] = [spearmanr(Y[:, k], u_dynamic)[0] for k in range(Y.shape[1])]
+
+df_term_loadings = pd.DataFrame(term_loadings, index=term_names)
+
+# Sign align columns to PLSC for visual consistency
+for col in df_term_loadings.columns:
+    if col != "PLSC":
+        corr = np.corrcoef(df_term_loadings["PLSC"], df_term_loadings[col])[0, 1]
+        if corr < 0:
+            df_term_loadings[col] = -df_term_loadings[col]
+
+# Save term loadings comparison CSV
+df_term_loadings.to_csv('results/ensemble_term_loadings_comparison.csv')
+print("Term loadings successfully calculated and saved to results/ensemble_term_loadings_comparison.csv")
+
+# Select the top 15 positive and top 15 negative terms based on the Ensemble model
+sorted_terms_by_ensemble = df_term_loadings["Ensemble"].sort_values(ascending=False)
+top_pos_terms = sorted_terms_by_ensemble.head(15).index
+top_neg_terms = sorted_terms_by_ensemble.tail(15).index
+selected_terms = list(top_pos_terms) + list(top_neg_terms)
+
+df_term_loadings_selected = df_term_loadings.loc[selected_terms]
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#                         PLOT TERM LOADINGS HEATMAP
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+print("Generating term loadings figure...")
+fig, ax = plt.subplots(figsize=(8, 10), dpi=300)
+
+sns.heatmap(df_term_loadings_selected, cmap="RdBu_r", center=0, annot=True, fmt=".2f", ax=ax,
+            cbar_kws={'label': 'Term Loading (Spearman $r$)', 'shrink': 0.5},
+            linewidths=0.5, linecolor='white')
+
+ax.set_title("Neurosynth Term Loadings Across Ensemble Components\n(Top 15 Positive and Top 15 Negative Terms)", fontsize=13, fontweight='bold', pad=15)
+ax.set_xlabel("Model / Component", fontsize=11)
+ax.set_ylabel("Neurosynth Cognitive Term", fontsize=11)
+
+plt.tight_layout()
+plt.savefig('figs/ensemble_term_loadings_comparison.pdf', bbox_inches='tight')
+plt.savefig('figs/ensemble_term_loadings_comparison.png', dpi=300, bbox_inches='tight')
+plt.close()
+print("Term loadings figure successfully generated!")
+
