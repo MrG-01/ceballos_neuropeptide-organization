@@ -27,6 +27,8 @@ expected_figs = [
     "figs/hth_nuclei_receptor_expression_heatmap.pdf",
     # 4_nt_profiling.py
     "figs/colocalization_nt_peptides.pdf",
+    "figs/colocalization_nt_peptides_ensemble.pdf",
+    "results/da_nt_peptides_ensemble_total_dominance.npy",
     "figs/ionotropic_metabotropic_receptors.pdf",
     "figs/kappa_opioid_receptor_comparison.pdf",
     "figs/mu_opioid_receptor_comparison.pdf",
@@ -169,6 +171,25 @@ rule nt_profiling:
         "figs/mu_opioid_receptor_comparison.pdf",
         "results/da_nt_peptides_total_dominance.npy",
         "results/da_nt_nulls_peptides_total_dominance_100.npy"
+    shell:
+        "python {input.script}"
+
+rule predict_colocalization_with_ensemble:
+    input:
+        script="scripts/predict_colocalization_with_ensemble.py",
+        neurosynth="data/neurosynth_Schaefer400_TianS4.csv",
+        gene_expr="data/receptor_gene_expression_Schaefer2018_400_7N_Tian_Subcortex_S4.csv",
+        lut="data/parcellations/Schaefer2018_400_7N_Tian_Subcortex_S4_LUT.csv",
+        overview="data/receptor_overview.csv",
+        densities="data/annotations/nt_receptor_densities_Schaefer400_TianS4_HTH.csv",
+        classes="data/annotations/nt_receptor_classes.csv",
+        parcellation="data/parcellations/Schaefer2018_400_7N_Tian_Subcortex_S4_space-MNI152_den-1mm.nii.gz",
+        sc="data/template_parc-Schaefer400_TianS4_desc-SC.npy",
+        fc="data/template_parc-Schaefer400_TianS4_desc-FC.npy"
+    output:
+        "figs/colocalization_nt_peptides_ensemble.pdf",
+        "figs/colocalization_nt_peptides_ensemble.png",
+        "results/da_nt_peptides_ensemble_total_dominance.npy"
     shell:
         "python {input.script}"
 
